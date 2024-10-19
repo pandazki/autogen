@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import re
+from autogen_magentic_one.markdown_browser.markdown_search import BingMarkdownSearch
 import tiktoken
 
 from openai import AzureOpenAI
@@ -172,7 +173,7 @@ async def main() -> None:
     runtime.start()
 
     actual_surfer = await runtime.try_get_underlying_agent_instance(web_surfer.id, type=MultimodalWebSurfer)
-    await actual_surfer.init(model_client=client, downloads_folder=os.getcwd(), browser_channel="chromium")
+    await actual_surfer.init(model_client=client, downloads_folder=os.getcwd(), browser_channel="chromium", markdown_search=BingMarkdownSearch(bing_api_key=os.getenv("BING_API_KEY"), interleave_results=True))
 
     filename_prompt = ""
     if len(filename) > 0:

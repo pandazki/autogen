@@ -55,6 +55,7 @@ from .types import (
     interactiveregion_from_dict,
     visualviewport_from_dict,
 )
+from ...markdown_browser.markdown_search import AbstractMarkdownSearch
 
 # Viewport dimensions
 VIEWPORT_HEIGHT = 900
@@ -118,6 +119,7 @@ class MultimodalWebSurfer(BaseWorker):
         debug_dir: str | None = os.getcwd(),
         # navigation_allow_list=lambda url: True,
         markdown_converter: Any | None = None,  # TODO: Fixme
+        markdown_search: AbstractMarkdownSearch | None = None,
     ) -> None:
         self._model_client = model_client
         self.start_page = start_page or self.DEFAULT_START_PAGE
@@ -125,6 +127,7 @@ class MultimodalWebSurfer(BaseWorker):
         self._chat_history: List[LLMMessage] = []
         self._last_download = None
         self._prior_metadata_hash = None
+        self._markdown_search = markdown_search
 
         ## Create or use the provided MarkdownConverter
         if markdown_converter is None:
@@ -289,8 +292,14 @@ setInterval(function() {{
 
         elif name == "web_search":
             query = args.get("query")
-            action_description = f"I typed '{query}' into the browser search bar."
-            await self._visit_page(f"https://www.bing.com/search?q={quote_plus(query)}&FORM=QBLH")
+            
+            if self._markdown_search:
+                action_description = f"I performed a web search for '{query}' by using a search api."
+                search_results = self._markdown_search.search(query)
+                return False, search_results
+            else:
+                action_description = f"I performed a web search for '{query}' by using the bing search website."
+                await self._visit_page(f"https://www.bing.com/search?q={quote_plus(query)}&FORM=QBLH")
 
         elif name == "page_up":
             action_description = "I scrolled up one page in the browser."

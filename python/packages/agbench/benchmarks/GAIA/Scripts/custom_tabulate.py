@@ -113,14 +113,14 @@ def main(args):
                         "status",
                         "expected_answer",
                         "final_answer",
-                        "cost",
-                        "latency",
-                        "num_of_llm_requests",
+                        # "cost",
+                        # "latency",
+                        # "num_of_llm_requests",
                         "num_of_chat_messages",
-                        "prompt_tokens",
-                        "completion_tokens",
-                        "total_tokens",
-                        "model",
+                        # "prompt_tokens",
+                        # "completion_tokens",
+                        # "total_tokens",
+                        # "model",
                     ]
                 )
 
@@ -129,13 +129,13 @@ def main(args):
                     "status": bool,
                     "expected_answer": str,
                     "final_answer": str,
-                    "cost": float,
-                    "latency": float,
-                    "num_of_llm_requests": int,
+                    # "cost": float,
+                    # "latency": float,
+                    # "num_of_llm_requests": int,
                     "num_of_chat_messages": int,
-                    "prompt_tokens": int,
-                    "completion_tokens": int,
-                    "total_tokens": int,
+                    # "prompt_tokens": int,
+                    # "completion_tokens": int,
+                    # "total_tokens": int,
                 }
 
                 for dbname, scorer_results in zip(each_trial, all_results):
@@ -147,10 +147,10 @@ def main(args):
                     con = sqlite3.connect(dbname)
 
                     # TODO: if large amount of data, add chunksize
-                    telemetry_df = pd.read_sql_query(query, con)
+                    # telemetry_df = pd.read_sql_query(query, con)
 
-                    earliest_starttime = pd.to_datetime(telemetry_df["start_time"], format="%Y-%m-%d %H:%M:%S.%f").min()
-                    latest_endtime = pd.to_datetime(telemetry_df["end_time"], format="%Y-%m-%d %H:%M:%S.%f").max()
+                    # earliest_starttime = pd.to_datetime(telemetry_df["start_time"], format="%Y-%m-%d %H:%M:%S.%f").min()
+                    # latest_endtime = pd.to_datetime(telemetry_df["end_time"], format="%Y-%m-%d %H:%M:%S.%f").max()
 
                     num_of_chat_messages = get_number_of_chat_messages(chat_messages_dir=os.path.dirname(dbname))
                     result = {
@@ -158,34 +158,34 @@ def main(args):
                         "status": status,
                         "expected_answer": expected_answer,
                         "final_answer": final_answer,
-                        "cost": telemetry_df["cost"].sum(),
-                        "latency": (latest_endtime - earliest_starttime).total_seconds(),
-                        "num_of_llm_requests": len(telemetry_df),
+                        # "cost": telemetry_df["cost"].sum(),
+                        # "latency": (latest_endtime - earliest_starttime).total_seconds(),
+                        # "num_of_llm_requests": len(telemetry_df),
                         "num_of_chat_messages": num_of_chat_messages,
-                        "prompt_tokens": telemetry_df["response"]
-                        .apply(
-                            lambda x: json.loads(x)["usage"]["prompt_tokens"]
-                            if "usage" in json.loads(x) and "prompt_tokens" in json.loads(x)["usage"]
-                            else 0
-                        )
-                        .sum(),
-                        "completion_tokens": telemetry_df["response"]
-                        .apply(
-                            lambda x: json.loads(x)["usage"]["completion_tokens"]
-                            if "usage" in json.loads(x) and "completion_tokens" in json.loads(x)["usage"]
-                            else 0
-                        )
-                        .sum(),
-                        "total_tokens": telemetry_df["response"]
-                        .apply(
-                            lambda x: json.loads(x)["usage"]["total_tokens"]
-                            if "usage" in json.loads(x) and "total_tokens" in json.loads(x)["usage"]
-                            else 0
-                        )
-                        .sum(),
-                        "model": telemetry_df["response"]
-                        .apply(lambda x: json.loads(x)["model"] if "model" in json.loads(x) else "")
-                        .unique(),
+                        # "prompt_tokens": telemetry_df["response"]
+                        # .apply(
+                        #     lambda x: json.loads(x)["usage"]["prompt_tokens"]
+                        #     if "usage" in json.loads(x) and "prompt_tokens" in json.loads(x)["usage"]
+                        #     else 0
+                        # )
+                        # .sum(),
+                        # "completion_tokens": telemetry_df["response"]
+                        # .apply(
+                        #     lambda x: json.loads(x)["usage"]["completion_tokens"]
+                        #     if "usage" in json.loads(x) and "completion_tokens" in json.loads(x)["usage"]
+                        #     else 0
+                        # )
+                        # .sum(),
+                        # "total_tokens": telemetry_df["response"]
+                        # .apply(
+                        #     lambda x: json.loads(x)["usage"]["total_tokens"]
+                        #     if "usage" in json.loads(x) and "total_tokens" in json.loads(x)["usage"]
+                        #     else 0
+                        # )
+                        # .sum(),
+                        # "model": telemetry_df["response"]
+                        # .apply(lambda x: json.loads(x)["model"] if "model" in json.loads(x) else "")
+                        # .unique(),
                     }
 
                     result_df = result_df.astype(result_df_type_mapping)
