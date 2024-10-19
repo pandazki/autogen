@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import re
+from autogen_magentic_one.agents.reasoner import Reasoner
 from autogen_magentic_one.markdown_browser.markdown_search import BingMarkdownSearch
 import tiktoken
 
@@ -29,7 +30,7 @@ from autogen_magentic_one.agents.orchestrator import LedgerOrchestrator
 from autogen_magentic_one.messages import BroadcastMessage
 from autogen_magentic_one.agents.multimodal_web_surfer import MultimodalWebSurfer
 from autogen_magentic_one.agents.file_surfer import FileSurfer
-from autogen_magentic_one.utils import LogHandler, message_content_to_str, create_completion_client_from_env
+from autogen_magentic_one.utils import LogHandler, create_completion_client_o1_from_env, message_content_to_str, create_completion_client_from_env
 
 encoding = None
 def count_token(value: str) -> int:
@@ -128,6 +129,7 @@ async def main() -> None:
     # Create the AzureOpenAI client, with AAD auth, from environment
     client = create_completion_client_from_env()
 
+    o1_client = create_completion_client_o1_from_env()
 
     mlm_client = create_completion_client_from_env()
 
@@ -138,6 +140,13 @@ async def main() -> None:
         subscriptions=lambda: [DefaultSubscription()],
     )
     coder = AgentProxy(AgentId("Assistant", "default"), runtime)
+
+    await runtime.register(
+        "Reasoner",
+        lambda: Reasoner(model_client=o1_client),
+        subscriptions=lambda: [DefaultSubscription()],
+    )
+    reasoner = AgentProxy(AgentId("Reasoner", "default"), runtime)
 
     await runtime.register(
         "ComputerTerminal",
@@ -161,7 +170,7 @@ async def main() -> None:
     web_surfer = AgentProxy(AgentId("WebSurfer", "default"), runtime)
 
     await runtime.register("Orchestrator", lambda: LedgerOrchestrator(
-            agents=[coder, executor, file_surfer, web_surfer],
+            agents=[reasoner, coder, executor, file_surfer, web_surfer],
             model_client=client,
             max_rounds=30,
             max_time=25*60,

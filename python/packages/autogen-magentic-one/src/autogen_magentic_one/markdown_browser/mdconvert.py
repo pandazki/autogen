@@ -14,6 +14,9 @@ import tempfile
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import parse_qs, quote, unquote, urlparse, urlunparse
 
+from openai import OpenAI
+import inspect
+
 import mammoth
 import markdownify
 import pandas as pd
@@ -768,6 +771,11 @@ class ImageConverter(MediaConverter):
                 content_type = "image/jpeg"
             image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
             data_uri = f"data:{content_type};base64,{image_base64}"
+
+        _raw_config = client._raw_config
+        openai_init_kwargs = set(inspect.getfullargspec(OpenAI.__init__).kwonlyargs)
+        openai_config = {k: v for k, v in _raw_config.items() if k in openai_init_kwargs}
+        client = OpenAI(**openai_config)
 
         messages = [
             {

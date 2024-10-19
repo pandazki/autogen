@@ -31,6 +31,22 @@ ENVIRON_KEY_CHAT_COMPLETION_KWARGS_JSON = "CHAT_COMPLETION_KWARGS_JSON"
 _default_azure_ad_token_provider = None
 
 
+def create_completion_client_o1_from_env(env: Dict[str, str] | None = None, **kwargs: Any) -> ChatCompletionClient:
+    if env is None:
+        env = dict()
+        env.update(os.environ)
+
+    # Load the kwargs, and override with provided kwargs
+    _kwargs = json.loads(env.get(ENVIRON_KEY_CHAT_COMPLETION_KWARGS_JSON, "{}"))
+    _kwargs.update(kwargs)
+
+    # set model to o1-preview
+    _kwargs["model"] = "o1-preview"
+    # remove temperature
+    _kwargs.pop("temperature", None)
+
+    return OpenAIChatCompletionClient(**_kwargs)
+
 # Create a model client based on information provided in environment variables.
 def create_completion_client_from_env(env: Dict[str, str] | None = None, **kwargs: Any) -> ChatCompletionClient:
     global _default_azure_ad_token_provider
