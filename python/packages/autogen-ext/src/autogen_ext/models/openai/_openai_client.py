@@ -522,7 +522,7 @@ class BaseOpenAIChatCompletionClient(ChatCompletionClient):
             raise ValueError("Function calls are not supported in this context")
 
         content: Union[str, List[FunctionCall]]
-        if choice.finish_reason == "tool_calls":
+        if choice.finish_reason == "tool_calls" or choice.finish_reason == "tool_use":
             assert choice.message.tool_calls is not None
             assert choice.message.function_call is None
 
